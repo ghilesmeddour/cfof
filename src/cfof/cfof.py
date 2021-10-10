@@ -50,8 +50,7 @@ class CFOF:
 
         # `min_k_neighborhood[i, j]` represents min k such that i contains j
         # in its neighborhood.
-        # TODO: add 1 ?
-        min_k_neighborhood = np.argsort(neighbors)
+        min_k_neighborhood = np.argsort(neighbors) + 1
 
         threshold = rho * n
 
