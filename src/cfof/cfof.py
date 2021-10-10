@@ -22,6 +22,8 @@ class CFOF:
         self.metric = metric
         self.n_jobs = n_jobs
 
+        self.log_spaced_bins = None
+
     def cfof(self, X: np.ndarray, rho: float = 0.01) -> np.ndarray:
         """
         Lorem.
@@ -63,8 +65,8 @@ class CFOF:
 
         return cfof_scores
 
-    @staticmethod
-    def fast_cfof(X: np.ndarray,
+    def fast_cfof(self,
+                  X: np.ndarray,
                   rhos: List[float] = [0.001, 0.005, 0.01, 0.05, 0.1],
                   epsilon: float = 0.01,
                   delta: float = 0.01,
@@ -87,6 +89,7 @@ class CFOF:
             Histogram bins.
         """
         n, _ = X.shape
+        self.log_spaced_bins = np.logspace(np.log10(1), np.log10(n), b)
 
         # The size s of the sample (or partition) of the dataset needed
         s = int(np.ceil((1 / 2 * (epsilon**2)) * np.log(2 / delta)))
@@ -104,12 +107,13 @@ class CFOF:
 
         return None
 
-    @staticmethod
-    def _fast_cfof_part(partition: np.ndarray, rhos: List[float], b: int,
+    def _fast_cfof_part(self, partition: np.ndarray, rhos: List[float], b: int,
                         n: int):
         s, _ = partition.shape
         pass
 
-    @staticmethod
-    def _k_bin():
+    def _k_bin(self, k_up):
+        return np.argmax(self.log_spaced_bins >= k_up)
+
+    def _k_bin_inv(self):
         pass
