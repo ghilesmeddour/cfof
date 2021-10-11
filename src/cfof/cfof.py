@@ -1,6 +1,5 @@
-from typing import Callable, List, Union
 from multiprocessing import Pool
-from functools import partial
+from typing import Callable, List, Union
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -13,36 +12,55 @@ class CFOF:
     Parameters
     ----------
     metric : str or callable, default 'euclidean'
-        Must be as expected by `sklearn.metrics.pairwise_distances`.
+        Must be a valid `sklearn.metrics`.
+    rhos : List[float], default [0.01]
+        `ϱ` parameters, fraction of the data population.
+        Must be between 0 and 1.
     n_jobs : int, default None
         The number of jobs to use for the computation.
         `-1` means using all processors.
+
+    References
+    ----------
+    .. [1] Angiulli, F. (2020, January).
+           CFOF: A Concentration Free Measure for Anomaly Detection.
+           In ACM Transactions on Knowledge Discovery from Data.
     """
     def __init__(self,
                  metric: Union[str, Callable] = 'euclidean',
+                 rhos: List[float] = [0.01],
                  n_jobs=None) -> None:
+        rhos = np.array(rhos)
+        if (rhos < 0.0).any() or (rhos > 1.0).any():
+            raise ValueError(f'rhos ({rhos}) must be between 0 and 1')
+
         self.metric = metric
+        self.rhos = rhos
         self.n_jobs = n_jobs
 
-        self.log_spaced_bins = None
+        self.thresholds = None
+        self.n = None
 
-    def cfof(self, X: np.ndarray, rho: float = 0.01) -> np.ndarray:
+    def compute(self, X: np.ndarray) -> np.ndarray:
         """
-        Lorem.
+        Compute hard-CFOF scores.
 
         Parameters
         ----------
         X : numpy.ndarray
             Dataset.
-        rho : float, default 0.01
-            ϱ parameter, fraction of the data population.
-            Must be between 0 and 1.
+
+        Returns
+        -------
+        numpy.ndarray
+            CFOF scores `sc`.
+            sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         """
-        if not (0.0 <= rho <= 1.0):
-            raise ValueError(f'rho ({rho}) must be between 0 and 1')
+        self.n, _ = X.shape
+        self.thresholds = self.rhos * self.n
+        return self._cfof(X)
 
-        n, _ = X.shape
-
+    def _cfof(self, X: np.ndarray) -> np.ndarray:
         # `neighbors[i]` are the neighbours of i in order of proximity.
         # Every point is the first neighbor of itself.
         neighbors = self._find_neighbors(X)
@@ -51,14 +69,12 @@ class CFOF:
         # in its neighborhood.
         min_k_neighborhood = np.argsort(neighbors) + 1
 
-        threshold = rho * n
-
         with Pool(processes=self.n_jobs) as pool:
-            cfof_scores = pool.map(
-                partial(CFOF._compute_col_cfof, threshold=threshold, n=n),
-                min_k_neighborhood.T)
+            sc = pool.map(self._compute_col_cfof, min_k_neighborhood.T)
 
-        return np.array(cfof_scores)
+        sc = np.array(sc) / self.n
+
+        return sc
 
     def _find_neighbors(self, X: np.ndarray, algorithm='auto'):
         nbrs = NearestNeighbors(n_neighbors=len(X),
@@ -68,67 +84,6 @@ class CFOF:
         indices = nbrs.kneighbors(X, return_distance=False)
         return indices
 
-    def _compute_col_cfof(col, threshold, n):
+    def _compute_col_cfof(self, col):
         counter = np.bincount(col).cumsum()
-        return np.argmax(counter >= threshold) / n
-
-    # TODO: use faiss / CPU / GPU
-    # if use_faiss:
-    #     import faiss
-    #     faiss_index = faiss.IndexFlatL2(X.shape[1])
-    #     faiss_index.add(X.astype(np.float32))
-    #     # Squared euclidean
-    #     _, neighbors = faiss_index.search(X.astype(np.float32), k=n)
-
-    def fast_cfof(self,
-                  X: np.ndarray,
-                  rhos: List[float] = [0.001, 0.005, 0.01, 0.05, 0.1],
-                  epsilon: float = 0.01,
-                  delta: float = 0.01,
-                  b: int = 10) -> np.ndarray:
-        """
-        Lorem.
-
-        Parameters
-        ----------
-        X : numpy.ndarray
-            Dataset.
-        rhos : List[float], default [0.001, 0.005, 0.01, 0.05, 0.1]
-            ϱ parameter, fraction of the data population.
-            Must be between 0 and 1.
-        epsilon : float, default 0.01
-            Lorem.
-        delta : float, default 0.01
-            Lorem.
-        b : int, default 10
-            Histogram bins.
-        """
-        n, _ = X.shape
-        self.log_spaced_bins = np.logspace(np.log10(1), np.log10(n), b)
-
-        # The size s of the sample (or partition) of the dataset needed
-        s = int(np.ceil((1 / 2 * (epsilon**2)) * np.log(2 / delta)))
-        i = 0
-
-        while i < n:
-            if i + s < n:
-                a = i + 1
-            else:
-                a = n - s + 1
-            b = a + s - 1
-            part = X[a:b]
-            _ = CFOF._fast_cfof_part(part, rhos, b, n)
-            i = i + s
-
-        return None
-
-    def _fast_cfof_part(self, partition: np.ndarray, rhos: List[float], b: int,
-                        n: int):
-        s, _ = partition.shape
-        pass
-
-    def _k_bin(self, k_up):
-        return np.argmax(self.log_spaced_bins >= k_up)
-
-    def _k_bin_inv(self):
-        pass
+        return np.array([np.argmax(counter >= t) for t in self.thresholds])
