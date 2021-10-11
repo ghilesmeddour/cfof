@@ -1,7 +1,9 @@
 from typing import Callable, List, Union
+from multiprocessing import Pool
+from functools import partial
 
 import numpy as np
-from sklearn.metrics import pairwise_distances
+from sklearn.neighbors import NearestNeighbors
 
 
 class CFOF:
@@ -41,14 +43,9 @@ class CFOF:
 
         n, _ = X.shape
 
-        # `pairwise_distances[i, j]` is the distance between i and j.
-        pd_matrix = pairwise_distances(X,
-                                       metric=self.metric,
-                                       n_jobs=self.n_jobs)
-
         # `neighbors[i]` are the neighbours of i in order of proximity.
         # Every point is the first neighbor of itself.
-        neighbors = np.argsort(pd_matrix)
+        neighbors = self._find_neighbors(X)
 
         # `min_k_neighborhood[i, j]` represents min k such that i contains j
         # in its neighborhood.
@@ -56,14 +53,32 @@ class CFOF:
 
         threshold = rho * n
 
-        cfof_scores = np.zeros((n, ))
-        for i in range(n):
-            for k in range(1, n):
-                if (min_k_neighborhood[:, i] <= k).sum() >= threshold:
-                    cfof_scores[i] = k / n
-                    break
+        with Pool(processes=self.n_jobs) as pool:
+            cfof_scores = pool.map(
+                partial(CFOF._compute_col_cfof, threshold=threshold, n=n),
+                min_k_neighborhood.T)
 
-        return cfof_scores
+        return np.array(cfof_scores)
+
+    def _find_neighbors(self, X: np.ndarray, algorithm='auto'):
+        nbrs = NearestNeighbors(n_neighbors=len(X),
+                                algorithm=algorithm,
+                                metric=self.metric,
+                                n_jobs=self.n_jobs).fit(X)
+        indices = nbrs.kneighbors(X, return_distance=False)
+        return indices
+
+    def _compute_col_cfof(col, threshold, n):
+        counter = np.bincount(col).cumsum()
+        return np.argmax(counter >= threshold) / n
+
+    # TODO: use faiss / CPU / GPU
+    # if use_faiss:
+    #     import faiss
+    #     faiss_index = faiss.IndexFlatL2(X.shape[1])
+    #     faiss_index.add(X.astype(np.float32))
+    #     # Squared euclidean
+    #     _, neighbors = faiss_index.search(X.astype(np.float32), k=n)
 
     def fast_cfof(self,
                   X: np.ndarray,
