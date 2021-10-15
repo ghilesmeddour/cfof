@@ -119,10 +119,10 @@ class FastCFOF:
                 a = i
             else:
                 a = self.n - self.s
-            b = a + s
+            b = a + self.s
             part = X[a:b]
             self._fast_cfof_part(part, start_i=a)
-            i = i + s
+            i = i + self.s
 
     def _fast_cfof_part(self, partition: np.ndarray, start_i: int):
         s, _ = partition.shape
