@@ -101,7 +101,7 @@ class FastCFOF:
             sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         """
         self.n, _ = X.shape
-        self.binning_ratio = self.n ** (1 / (self.n_bins - 1))
+        self.binning_ratio = self.n**(1 / (self.n_bins - 1))
         self.binning_ratio_log = np.log(self.binning_ratio)
         self.sc = np.zeros((self.n, len(self.rhos)))
         self._fast_cfof(X)
@@ -161,4 +161,4 @@ class FastCFOF:
         return int(np.log(k_up) / self.binning_ratio_log)
 
     def _k_bin_inv(self, k_pos):
-        return self.binning_ratio ** k_pos
+        return self.binning_ratio**k_pos
