@@ -152,4 +152,4 @@ class FastCFOF:
 
     def _k_bin_inv(self, k_pos):
         # TODO: check this
-        return self.log_spaced_bins[k_pos]
+        return self.log_spaced_bins[k_pos - 1]
