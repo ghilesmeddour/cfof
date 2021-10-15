@@ -78,7 +78,8 @@ class FastCFOF:
 
         self.n_jobs = n_jobs
 
-        self.log_spaced_bins = None
+        self.binning_ratio = None
+        self.binning_ratio_log = None
         self.n = None
 
         # sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
@@ -100,8 +101,8 @@ class FastCFOF:
             sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         """
         self.n, _ = X.shape
-        self.log_spaced_bins = np.logspace(np.log10(1), np.log10(self.n),
-                                           self.n_bins)
+        self.binning_ratio = self.n ** (1 / (self.n_bins - 1))
+        self.binning_ratio_log = np.log(self.binning_ratio)
         self.sc = np.zeros((self.n, len(self.rhos)))
         self._fast_cfof(X)
         return self.sc
@@ -157,10 +158,7 @@ class FastCFOF:
                 self.sc[start_i + i, l] = self._k_bin_inv(k_pos) / self.n
 
     def _k_bin(self, k_up):
-        for i, b in enumerate(self.log_spaced_bins[1:]):
-            if k_up < b:
-                return i
+        return int(np.log(k_up) / self.binning_ratio_log)
 
     def _k_bin_inv(self, k_pos):
-        # TODO: check this
-        return self.log_spaced_bins[k_pos - 1]
+        return self.binning_ratio ** k_pos
