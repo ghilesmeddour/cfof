@@ -1,3 +1,7 @@
+## Version 0.3.0 (2021-10-15)
+- FastCFOF
+  - Numpyfy `_fast_cfof_part`
+  
 ## Version 0.2.0 (2021-10-15)
 - FastCFOF
   - Fix `_k_bin_inv`.
