@@ -1,4 +1,4 @@
-## Version 0.2.0 (2021-10-XX)
+## Version 0.2.0 (2021-10-15)
 - FastCFOF
   - Fix `_k_bin_inv`.
   - Optimize `_k_bin`.
