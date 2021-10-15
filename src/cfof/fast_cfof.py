@@ -8,7 +8,7 @@ class FastCFOF:
     """
     Fast-CFOF.
 
-    Fast-CFOF exploits sampling to avoid the computation of exact nearest 
+    Fast-CFOF exploits sampling to avoid the computation of exact nearest
     neighbors. The cost of fast-CFOF is linear both in the dataset size and
     dimensionality.
 
