@@ -138,12 +138,11 @@ class FastCFOF:
             # Count update
             ord = np.argsort(dst)
 
-            for j in range(s):
-                p = (j + 1) / s
-                k_up = np.floor(self.n * p + self.c * np.sqrt(self.n * p *
-                                                              (1 - p)) + 0.5)
-                k_pos = self._k_bin(k_up)
-                hst[ord[j], k_pos] += 1
+            p_s = (np.arange(s) + 1) / s
+            k_up_s = np.floor(self.n * p_s + self.c * np.sqrt(self.n * p_s *
+                                                              (1 - p_s)) + 0.5)
+            k_pos_s = self._k_bin(k_up_s)
+            hst[ord, k_pos_s] += 1
 
         # Scores computation
         for i in range(s):
@@ -158,7 +157,7 @@ class FastCFOF:
                 self.sc[start_i + i, l] = self._k_bin_inv(k_pos) / self.n
 
     def _k_bin(self, k_up):
-        return int(np.log(k_up) / self.binning_ratio_log)
+        return (np.log(k_up) / self.binning_ratio_log).astype(int)
 
     def _k_bin_inv(self, k_pos):
         return self.binning_ratio**k_pos
