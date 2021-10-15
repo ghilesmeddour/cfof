@@ -59,11 +59,9 @@ class FastCFOF:
 
         if not (0 < epsilon < 1):
             raise ValueError(f'epsilon ({epsilon}) must be between 0 and 1')
-        self.epsilon = epsilon
 
         if not (0 < delta < 1):
             raise ValueError(f'delta ({delta}) must be between 0 and 1')
-        self.delta = delta
 
         if not (0 <= c <= 3):
             raise ValueError(f'c ({c}) must be between 0 and 3')
@@ -74,8 +72,7 @@ class FastCFOF:
         self.n_bins = n_bins
 
         if partition_size is None:
-            self.s = int(np.ceil(
-                (1 / (2 * (self.epsilon**2))) * np.log(2 / self.delta)))
+            self.s = int(np.ceil((1 / (2 * (epsilon**2))) * np.log(2 / delta)))
         else:
             self.s = partition_size
 
