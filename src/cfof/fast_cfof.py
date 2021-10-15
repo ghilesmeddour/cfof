@@ -111,7 +111,7 @@ class FastCFOF:
 
         if self.s > self.n:
             raise ValueError(
-                f"Partition (s = {s}) can't be bigger than dataset (n = {self.n})"
+                f"Partition (s = {self.s}) can't be bigger than dataset (n = {self.n})"
             )
 
         while i < self.n:
