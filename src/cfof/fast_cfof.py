@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 
 import numpy as np
 from scipy.spatial.distance import cdist
@@ -27,6 +27,10 @@ class FastCFOF:
         c, with c ∈ [0, 3].
     n_bins : int, default 10
         Histogram bins.
+    partition_size : Optional[int], default None
+        Size of partitions. 
+        If None, it is computed using ϵ and δ.
+        If given, ϵ and δ are ignored.
     n_jobs : int, default None
         The number of jobs to use for the computation.
         `-1` means using all processors.
@@ -44,6 +48,7 @@ class FastCFOF:
                  delta: float = 0.01,
                  c: int = 1,
                  n_bins: int = 10,
+                 partition_size: Optional[int] = None,
                  n_jobs=None) -> None:
         self.metric = metric
 
@@ -67,6 +72,12 @@ class FastCFOF:
         if not n_bins > 0:
             raise ValueError(f'n_bins ({n_bins}) must be positive')
         self.n_bins = n_bins
+
+        if partition_size is None:
+            self.s = int(np.ceil(
+                (1 / (2 * (self.epsilon**2))) * np.log(2 / self.delta)))
+        else:
+            self.s = partition_size
 
         self.n_jobs = n_jobs
 
@@ -99,21 +110,18 @@ class FastCFOF:
         return self.sc
 
     def _fast_cfof(self, X: np.ndarray):
-        # The size s of the sample (or partition) of the dataset needed
-        s = int(np.ceil(
-            (1 / (2 * (self.epsilon**2))) * np.log(2 / self.delta)))
         i = 0
 
-        if s > self.n:
+        if self.s > self.n:
             raise ValueError(
                 f"Partition (s = {s}) can't be bigger than dataset (n = {self.n})"
             )
 
         while i < self.n:
-            if i + s < self.n:
+            if i + self.s < self.n:
                 a = i
             else:
-                a = self.n - s
+                a = self.n - self.s
             b = a + s
             part = X[a:b]
             self._fast_cfof_part(part, start_i=a)
