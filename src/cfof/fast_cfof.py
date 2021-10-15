@@ -23,6 +23,8 @@ class FastCFOF:
         ϵ, absolute error. (0 < ϵ < 1)
     delta : float, default 0.01
         δ, error probability. (0 < δ < 1)
+    c : int, default 1
+        c, with c ∈ [0, 3].
     n_bins : int, default 10
         Histogram bins.
     n_jobs : int, default None
@@ -40,6 +42,7 @@ class FastCFOF:
                  rhos: List[float] = [0.001, 0.005, 0.01, 0.05, 0.1],
                  epsilon: float = 0.01,
                  delta: float = 0.01,
+                 c: int = 1,
                  n_bins: int = 10,
                  n_jobs=None) -> None:
         self.metric = metric
@@ -56,6 +59,10 @@ class FastCFOF:
         if not (0 < delta < 1):
             raise ValueError(f'delta ({delta}) must be between 0 and 1')
         self.delta = delta
+
+        if not (0 <= c <= 3):
+            raise ValueError(f'c ({c}) must be between 0 and 3')
+        self.c = c
 
         if not n_bins > 0:
             raise ValueError(f'n_bins ({n_bins}) must be positive')
@@ -115,9 +122,6 @@ class FastCFOF:
     def _fast_cfof_part(self, partition: np.ndarray, start_i: int):
         s, _ = partition.shape
 
-        # TODO: check this
-        c = 1
-
         hst = np.zeros((s, self.n_bins))
 
         # Nearest neighbor count estimation
@@ -130,8 +134,8 @@ class FastCFOF:
 
             for j in range(s):
                 p = (j + 1) / s
-                k_up = np.floor(self.n * p + c * np.sqrt(self.n * p *
-                                                         (1 - p)) + 0.5)
+                k_up = np.floor(self.n * p + self.c * np.sqrt(self.n * p *
+                                                              (1 - p)) + 0.5)
                 k_pos = self._k_bin(k_up)
                 hst[ord[j], k_pos] += 1
 
