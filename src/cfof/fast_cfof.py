@@ -22,7 +22,7 @@ class FastCFOF:
     epsilon : float, default 0.01
         ϵ, absolute error. (0 < ϵ < 1)
     delta : float, default 0.01
-        δ, error probability. (δ > 0)
+        δ, error probability. (0 < δ < 1)
     n_bins : int, default 10
         Histogram bins.
     n_jobs : int, default None
