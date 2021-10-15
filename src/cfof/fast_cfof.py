@@ -28,7 +28,7 @@ class FastCFOF:
     n_bins : int, default 10
         Histogram bins.
     partition_size : Optional[int], default None
-        Size of partitions. 
+        Size of partitions.
         If None, it is computed using ϵ and δ.
         If given, ϵ and δ are ignored.
     n_jobs : int, default None
