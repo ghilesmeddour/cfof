@@ -148,7 +148,9 @@ class FastCFOF:
                 self.sc[start_i + i, l] = self._k_bin_inv(k_pos) / self.n
 
     def _k_bin(self, k_up):
-        return np.argmax(self.log_spaced_bins >= k_up) - 1
+        for i, b in enumerate(self.log_spaced_bins):
+            if k_up > b:
+                return i
 
     def _k_bin_inv(self, k_pos):
         # TODO: check this
