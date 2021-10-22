@@ -1,7 +1,7 @@
 from typing import Callable, List, Optional, Union
 
 import numpy as np
-from scipy.spatial.distance import cdist
+from sklearn.metrics import pairwise_distances
 
 
 class FastCFOF:
@@ -81,6 +81,9 @@ class FastCFOF:
         self.binning_ratio_log = None
         self.n = None
 
+        self.X = None
+        self.distance_matrix = None
+
         # sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         self.sc = None
 
@@ -99,14 +102,45 @@ class FastCFOF:
             CFOF scores `sc`.
             sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         """
-        self.n, _ = X.shape
+        self.X = X
+        self._fast_cfof()
+        self.X = None
+        return self.sc
+
+    def compute_from_distance_matrix(
+            self, distance_matrix: np.ndarray) -> np.ndarray:
+        """
+        Compute hard-CFOF scores from distance matrix.
+
+        Parameters
+        ----------
+        distance_matrix : numpy.ndarray
+            Distance matrix.
+
+        Returns
+        -------
+        numpy.ndarray
+            CFOF scores `sc`.
+            sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
+        """
+        self.distance_matrix = distance_matrix
+        self._fast_cfof()
+        self.distance_matrix = None
+        return self.sc
+
+    def _update_params(self):
+        if self.X is not None:
+            self.n, _ = self.X.shape
+        elif self.distance_matrix is not None:
+            self.n, _ = self.distance_matrix.shape
+
         self.binning_ratio = self.n**(1 / (self.n_bins - 1))
         self.binning_ratio_log = np.log(self.binning_ratio)
         self.sc = np.zeros((self.n, len(self.rhos)))
-        self._fast_cfof(X)
-        return self.sc
 
-    def _fast_cfof(self, X: np.ndarray):
+    def _fast_cfof(self):
+        self._update_params()
+
         i = 0
 
         if self.s > self.n:
@@ -120,19 +154,24 @@ class FastCFOF:
             else:
                 a = self.n - self.s
             b = a + self.s
-            part = X[a:b]
-            self._fast_cfof_part(part, start_i=a)
+            self._fast_cfof_part(start_i=a, end_i=b)
             i = i + self.s
 
-    def _fast_cfof_part(self, partition: np.ndarray, start_i: int):
-        s, _ = partition.shape
+    def _fast_cfof_part(self, start_i: int, end_i: int):
+        if self.X is not None:
+            # Distances computation
+            distances = pairwise_distances(self.X[start_i:end_i],
+                                           n_jobs=self.n_jobs)
+        elif self.distance_matrix is not None:
+            distances = self.distance_matrix[start_i:end_i, start_i:end_i]
+
+        s = end_i - start_i
 
         hst = np.zeros((s, self.n_bins))
 
         # Nearest neighbor count estimation
         for i in range(s):
-            # Distances computation
-            dst = cdist(partition[[i], :], partition, metric=self.metric)[0]
+            dst = distances[i, :]
 
             # Count update
             ord = np.argsort(dst)
