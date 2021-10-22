@@ -36,7 +36,12 @@ Load data.
 
 Instantiate `CFOF` or `FastCFOF`, then call `.compute(X)` to calculate the scores. `.compute(X)` returns `sc`, where `sc[i, l]` is score of object `i` for `ϱ_l` (rhos[l]).
 
+You can also calculate CFOF scores from a precomputed distance matrix using 
+`.compute_from_distance_matrix()`.
+
 ### CFOF (hard-CFOF)
+
+Use `compute` to compute CFOF scores directly from data.
 
 ```python
 >>> cfof_clf = CFOF(metric='euclidean', rhos=[0.5, 0.6], n_jobs=1)
@@ -49,7 +54,24 @@ array([[0.5       , 0.66666667],
        [0.5       , 1.        ]])
 ```
 
+Use `compute_from_distance_matrix` to compute CFOF scores from a precomputed 
+distance matrix.
+
+```python
+>>> from sklearn.metrics import pairwise_distances
+>>> distance_matrix = pairwise_distances(X, metric='euclidean')
+>>> cfof_clf.compute_from_distance_matrix(distance_matrix)
+array([[0.5       , 0.66666667],
+       [0.33333333, 0.83333333],
+       [0.5       , 1.        ],
+       [0.5       , 0.66666667],
+       [0.33333333, 0.83333333],
+       [0.5       , 1.        ]])
+```
+
 ### FastCFOF (soft-CFOF)
+
+Use `compute` to compute CFOF scores directly from data.
 
 ```python
 >>> np.random.seed(10)
@@ -68,6 +90,33 @@ array([[0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
        [0.00954095, 0.00954095, 0.02559548, 0.0390694 , 0.09102982]])
 ```
 
+Use `compute_from_distance_matrix` to compute CFOF scores from a precomputed 
+distance matrix.
+
+```python
+>>> from sklearn.metrics import pairwise_distances
+>>> distance_matrix = pairwise_distances(X, metric='euclidean')
+>>> fast_cfof_clf.compute_from_distance_matrix(distance_matrix)
+array([[0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
+       [0.00954095, 0.00954095, 0.01930698, 0.06866488, 0.10481131],
+       [0.00954095, 0.00954095, 0.02559548, 0.06866488, 0.10481131],
+       ...,
+       [0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
+       [0.00954095, 0.00954095, 0.03393222, 0.15998587, 0.24420531],
+       [0.00954095, 0.00954095, 0.02559548, 0.0390694 , 0.09102982]])
+```
+
+### CFOFiSAX
+
+This library provides a wrapper for [pyCFOFiSAX](https://github.com/luk-f/pyCFOFiSAX) [[1]](#1)
+
+```python
+>>> from cfof.cfof_isax import CFOFiSAXWrapper
+```
+
+Refer to [`pyCFOFiSAX` documentation](https://pycfofisax.readthedocs.io/fr/main/) 
+for more details.
+
 ### TODOs
 
 - [ ] Add support for [`faiss`](https://github.com/facebookresearch/faiss) (GPU).
@@ -80,3 +129,6 @@ array([[0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
 
 <a id="1">[1]</a>
 ANGIULLI, Fabrizio. CFOF: a concentration free measure for anomaly detection. ACM Transactions on Knowledge Discovery from Data (TKDD), 2020, vol. 14, no 1, p. 1-53.
+
+<a id="2">[2]</a>
+FOULON, Lucas, FENET, Serge, RIGOTTI, Christophe, et al. Scoring Message Stream Anomalies in Railway Communication Systems. In : 2019 International Conference on Data Mining Workshops (ICDMW). IEEE, 2019. p. 769-776.
