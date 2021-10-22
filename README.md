@@ -74,6 +74,7 @@ array([[0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
 - [ ] Parallelize FastCFOF.
 - [ ] Add unit tests.
 - [ ] Add benchmarks.
+- [ ] Wrap [pyCFOFiSAX](https://github.com/luk-f/pyCFOFiSAX).
 
 ## References
 
