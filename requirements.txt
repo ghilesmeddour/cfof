@@ -1,1 +1,2 @@
 .
+pyCFOFiSAX==0.1.0
