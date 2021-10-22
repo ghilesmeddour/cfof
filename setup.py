@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cfof",
-    version="0.3.0",
+    version="0.4.0",
     author="Ghiles Meddour",
     author_email="ghiles.meddour@munic.io",
     description="Concentration Free Outlier Factor",
