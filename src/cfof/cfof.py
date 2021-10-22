@@ -30,12 +30,11 @@ class CFOF:
                  metric: Union[str, Callable] = 'euclidean',
                  rhos: List[float] = [0.01],
                  n_jobs=None) -> None:
-        rhos = np.array(rhos)
-        if (rhos < 0.0).any() or (rhos > 1.0).any():
-            raise ValueError(f'rhos ({rhos}) must be between 0 and 1')
+        self.rhos = np.array(rhos)
+        if (self.rhos < 0.0).any() or (self.rhos > 1.0).any():
+            raise ValueError(f'rhos ({self.rhos}) must be between 0 and 1')
 
         self.metric = metric
-        self.rhos = rhos
         self.n_jobs = n_jobs
 
         self.thresholds = None
