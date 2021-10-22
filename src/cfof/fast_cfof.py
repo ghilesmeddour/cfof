@@ -52,10 +52,9 @@ class FastCFOF:
                  n_jobs=None) -> None:
         self.metric = metric
 
-        rhos = np.array(rhos)
-        if (rhos < 0.0).any() or (rhos > 1.0).any():
-            raise ValueError(f'rhos ({rhos}) must be between 0 and 1')
-        self.rhos = rhos
+        self.rhos = np.array(rhos)
+        if (self.rhos < 0.0).any() or (self.rhos > 1.0).any():
+            raise ValueError(f'rhos ({self.rhos}) must be between 0 and 1')
 
         if not (0 < epsilon < 1):
             raise ValueError(f'epsilon ({epsilon}) must be between 0 and 1')
