@@ -7,3 +7,4 @@ dist
 htmlcov
 .coverage
 .mypy*
+notebooks
