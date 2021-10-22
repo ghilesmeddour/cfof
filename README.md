@@ -108,7 +108,7 @@ array([[0.00954095, 0.00954095, 0.01930698, 0.05963623, 0.10481131],
 
 ### CFOFiSAX
 
-This library provides a wrapper for [pyCFOFiSAX](https://github.com/luk-f/pyCFOFiSAX) [[1]](#1)
+This library provides a wrapper for [pyCFOFiSAX](https://github.com/luk-f/pyCFOFiSAX) [[2]](#2)
 
 ```python
 >>> from cfof.cfof_isax import CFOFiSAXWrapper
