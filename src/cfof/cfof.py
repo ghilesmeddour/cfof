@@ -56,15 +56,37 @@ class CFOF:
             CFOF scores `sc`.
             sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
         """
-        self.n, _ = X.shape
-        self.thresholds = self.rhos * self.n
-        return self._cfof(X)
-
-    def _cfof(self, X: np.ndarray) -> np.ndarray:
-        # `neighbors[i]` are the neighbours of i in order of proximity.
-        # Every point is the first neighbor of itself.
+        self._update_params(X)
         neighbors = self._find_neighbors(X)
+        return self._cfof(neighbors)
 
+    def compute_from_distance_matrix(
+            self, distance_matrix: np.ndarray) -> np.ndarray:
+        """
+        Compute hard-CFOF scores from distance matrix.
+
+        Parameters
+        ----------
+        compute_from_distance_matrix : numpy.ndarray
+            Distance matrix.
+
+        Returns
+        -------
+        numpy.ndarray
+            CFOF scores `sc`.
+            sc[i, l] is score of object `i` for `ϱl` (rhos[l]).
+        """
+        self._update_params(distance_matrix)
+        neighbors = self._find_neighbors_from_distance_matrix(distance_matrix)
+        return self._cfof(neighbors)
+
+    def _update_params(self, input: np.ndarray):
+        self.n, _ = input.shape
+        self.thresholds = self.rhos * self.n
+
+    # `neighbors[i]` are the neighbours of i in order of proximity.
+    # Every point is the first neighbor of itself.
+    def _cfof(self, neighbors: np.ndarray) -> np.ndarray:
         # `min_k_neighborhood[i, j]` represents min k such that i contains j
         # in its neighborhood.
         min_k_neighborhood = np.argsort(neighbors) + 1
@@ -82,6 +104,11 @@ class CFOF:
                                 metric=self.metric,
                                 n_jobs=self.n_jobs).fit(X)
         indices = nbrs.kneighbors(X, return_distance=False)
+        return indices
+
+    def _find_neighbors_from_distance_matrix(self,
+                                             distance_matrix: np.ndarray):
+        indices = np.argsort(distance_matrix)
         return indices
 
     def _compute_col_cfof(self, col):
